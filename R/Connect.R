@@ -591,7 +591,7 @@ connect <- function(connectionDetails = NULL,
         )
       }
     }
-    
+
     attr(connection, "dbms") <- dbms
     return(connection)
   }
@@ -656,6 +656,19 @@ connectUsingJdbcDriver <- function(jdbcDriver,
                     dbms = dbms,
                     uuid = generateRandomString()
   )
+  registerWithRStudio(connection)
+  return(connection)
+}
+
+connectUsingSparklyr <- function(sc) {
+    connection <- new(
+        "DatabaseConnectorDbiConnection",
+        dbiConnection = sc,
+        identifierQuote = "'",
+        stringQuote = "'",
+        dbms = "spark",
+        uuid = generateRandomString()
+    )
   registerWithRStudio(connection)
   return(connection)
 }
