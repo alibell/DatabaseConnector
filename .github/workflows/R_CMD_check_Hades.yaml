@@ -50,7 +50,8 @@ jobs:
       CDM5_REDSHIFT_USER: ${{ secrets.CDM5_REDSHIFT_USER }}
       CDM5_SPARK_USER: ${{ secrets.CDM5_SPARK_USER }}
       CDM5_SPARK_PASSWORD: ${{ secrets.CDM5_SPARK_PASSWORD }}
-      CDM5_SPARK_CONNECTION_STRING: ${{ secrets.CDM5_SPARK_CONNECTION_STRING }}
+      CDM5_SPARK_CONNECTION_STRING: ${{ secrets.CDM5_SPARK_CONNECTION_STRING }},
+      INSTALL_WINUTILS: ${{ matrix.config.os == 'windows-latest' }}
 
     steps:
       - uses: actions/checkout@v2
