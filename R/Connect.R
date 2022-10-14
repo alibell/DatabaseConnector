@@ -572,7 +572,7 @@ connect <- function(connectionDetails = NULL,
   if (dbms == "spark") {
     if (is(pathToDriver, "spark_connection")) {
         inform("Connecting using Sparklyr")
-        connectUsingSparklyr(sc=pathToDriver)
+        connection <- connectUsingSparklyr(sc=pathToDriver)
     } else {
       inform("Connecting using Spark driver")
       jarPath <- findPathToJar("^SparkJDBC42\\.jar$", pathToDriver)
