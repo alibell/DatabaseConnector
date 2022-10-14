@@ -284,6 +284,17 @@ test_that("Error is thrown when forgetting password", {
   expect_error(connection <- connect(details), "Connection propery 'password' is NULL")
 })
 
+test_that("Open and close connection using embedded driver", {
+  # Spark with Sparklyr ----------------------------------------
+  sc <- loadSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver = sc
+  )
+  connection <- connect(details)
+  expect_true(inherits(connection, "DatabaseConnectorConnection"))
+  expect_true(disconnect(connection))
+})
 
 test_that("dbms function maps DBI connections to correct SQL dialect", {
   

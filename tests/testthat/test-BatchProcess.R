@@ -111,4 +111,25 @@ test_that("renderTranslateQueryApplyBatched works", {
 
   disconnect(connection)
   unlink(dbFile)
+
+  # Spark --------------------------------------------------
+  sc <- loadSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver= sc
+  )
+  connection <- connect(details)
+  executeSql(connection, "CREATE TABLE IF NOT EXISTS person (x INT); INSERT OVERWRITE TABLE person
+  SELECT EXPLODE(ARRAY(1,2,3)) AS x")
+  sql <- "SELECT * FROM person;"
+  data <- renderTranslateQueryApplyBatched(
+    connection,
+    sql,
+    fun,
+    args
+  )
+  data <- do.call(rbind, data)
+  expect_true("test" %in% colnames(data))
+  expect_true(all(data$test == "MY STRING"))
+  
 })

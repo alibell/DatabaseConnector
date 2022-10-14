@@ -79,4 +79,22 @@ test_that("Compute data hash", {
   
   disconnect(connection)
   unlink(dbFile)
+
+  # Spark --------------------------------------------------------------------
+  sc <- loadAndPopulateSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver= sc
+  )
+  connection <- connect(details)
+  DatabaseConnector::insertTable(
+    connection = connection,
+    databaseSchema = "main",
+    tableName = "cars",
+    data = cars,
+    createTable = TRUE
+  )
+  hash <- computeDataHash(connection, "main")
+  expect_true(is.character(hash)) 
+
 })

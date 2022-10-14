@@ -66,6 +66,18 @@ test_that("Get table names", {
   expect_true("PERSON" %in% tables)
   expect_true(existsTable(connection, Sys.getenv("CDM5_REDSHIFT_CDM_SCHEMA"), "person"))
   disconnect(connection)
+
+  # Spark --------------------------------------------------
+  sc <- loadAndPopulateSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver = sc
+  )
+  connection <- connect(details)
+  tables <- getTableNames(connection, "main")
+  expect_true("TEST" %in% tables)
+  expect_true(existsTable(connection, "main", "test"))
+  disconnect(connection)
 })
 
 test_that("Cleaning of database or schema name", {

@@ -181,6 +181,43 @@ test_that("Fetch results", {
   }
   
   disconnect(connection)
+
+  # Spark ---------------------------------------
+  sc <- loadAndPopulateSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver = sc
+  )
+  connection <- connect(details)
+  sql <- "SELECT COUNT(*) AS row_count FROM @database.@table"
+  renderedSql <- SqlRender::render(sql, database = "main", table = "test")
+
+  # Fetch data.frame:
+  count <- querySql(connection, renderedSql)
+  expect_equal(count[1, 1], 10)
+  count <- renderTranslateQuerySql(connection, sql, database = "main", table = "test")
+  expect_equal(count[1, 1], 10)
+
+  # Fetch Andromeda:
+  andromeda <- Andromeda::andromeda()
+  querySqlToAndromeda(connection, renderedSql, andromeda = andromeda, andromedaTableName = "test", snakeCaseToCamelCase = TRUE)
+  expect_equivalent(dplyr::collect(andromeda$test)$rowCount[1], 10)
+  renderTranslateQuerySqlToAndromeda(connection,
+                                      sql,
+                                      database = "main", 
+                                      table = "test",
+                                      andromeda = andromeda,
+                                      andromedaTableName = "test2",
+                                      snakeCaseToCamelCase = TRUE
+  )
+  expect_equivalent(dplyr::collect(andromeda$test2)$rowCount[1], 10)
+  if (inherits(andromeda, "SQLiteConnection")) {
+    Andromeda::close(andromeda)
+  } else {
+    close(andromeda)
+  }
+
+  disconnect(connection)
 })
 
 test_that("dbFetch works", {
@@ -254,6 +291,25 @@ test_that("dbFetch works", {
   queryResult <- dbSendQuery(connection, renderedSql)
   df <- dbFetch(queryResult)
   dbClearResult(queryResult)
+  
+  disconnect(connection)
+
+  # Spark ----------------------------------------------
+  sc <- loadAndPopulateSpark()
+  details <- createConnectionDetails(
+    dbms = "spark",
+    pathToDriver = sc
+  )
+  connection <- connect(details)
+  
+  sql <- "SELECT * FROM @database.@table LIMIT 10"
+  renderedSql <- SqlRender::render(sql, database = "main", table = "test")
+  
+  queryResult <- dbSendQuery(connection, renderedSql)
+  df <- dbFetch(queryResult)
+  dbClearResult(queryResult)
+  expect_s3_class(df, "data.frame")
+  expect_equal(nrow(df), 10)
   
   disconnect(connection)
 })
