@@ -79,10 +79,12 @@ setClass("DatabaseConnectorJdbcConnection",
 #' @keywords internal
 #' @export
 #' @import DBI
+setOldClass("spark_connection")
+setClassUnion("DBIConnectionObjects", c("DBIConnection", "spark_connection"))
 setClass("DatabaseConnectorDbiConnection",
          contains = "DatabaseConnectorConnection",
          slots = list(
-           dbiConnection = "DBIConnection",
+           dbiConnection = "DBIConnectionObjects",
            server = "character"
          )
 )

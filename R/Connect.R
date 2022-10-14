@@ -93,8 +93,10 @@ createConnectionDetails <- function(dbms,
                                     connectionString = NULL,
                                     pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")) {
   checkIfDbmsIsSupported(dbms)
-  pathToDriver <- path.expand(pathToDriver)
-  checkPathToDriver(pathToDriver, dbms)
+  if (!is(pathToDriver, "spark_connection")) {
+      pathToDriver <- path.expand(pathToDriver)
+      checkPathToDriver(pathToDriver, dbms)
+  }
 
   result <- list(
     dbms = dbms,
@@ -209,8 +211,10 @@ connect <- function(connectionDetails = NULL,
     return(connection)
   }
   checkIfDbmsIsSupported(dbms)
-  pathToDriver <- path.expand(pathToDriver)
-  checkPathToDriver(pathToDriver, dbms)
+  if (!is(pathToDriver, "spark_connection")) {
+      pathToDriver <- path.expand(pathToDriver)
+      checkPathToDriver(pathToDriver, dbms)
+  }
 
   if (dbms == "sql server" || dbms == "synapse") {
     jarPath <- findPathToJar("^mssql-jdbc.*.jar$|^sqljdbc.*\\.jar$", pathToDriver)
@@ -566,22 +570,28 @@ connect <- function(connectionDetails = NULL,
     return(connection)
   }
   if (dbms == "spark") {
-    inform("Connecting using Spark driver")
-    jarPath <- findPathToJar("^SparkJDBC42\\.jar$", pathToDriver)
-    driver <- getJbcDriverSingleton("com.simba.spark.jdbc.Driver", jarPath)
-    if (missing(connectionString) || is.null(connectionString) || connectionString == "") {
-      abort("Error: Connection string required for connecting to Spark.")
-    }
-    if (missing(user) || is.null(user)) {
-      connection <- connectUsingJdbcDriver(driver, connectionString, dbms = dbms)
+    if (is(pathToDriver, "spark_connection")) {
+        inform("Connecting using Sparklyr")
+        connectUsingSparklyr(sc=pathToDriver)
     } else {
-      connection <- connectUsingJdbcDriver(driver,
-                                           connectionString,
-                                           user = user,
-                                           password = password,
-                                           dbms = dbms
-      )
+      inform("Connecting using Spark driver")
+      jarPath <- findPathToJar("^SparkJDBC42\\.jar$", pathToDriver)
+      driver <- getJbcDriverSingleton("com.simba.spark.jdbc.Driver", jarPath)
+      if (missing(connectionString) || is.null(connectionString) || connectionString == "") {
+        abort("Error: Connection string required for connecting to Spark.")
+      }
+      if (missing(user) || is.null(user)) {
+        connection <- connectUsingJdbcDriver(driver, connectionString, dbms = dbms)
+      } else {
+        connection <- connectUsingJdbcDriver(driver,
+                                            connectionString,
+                                            user = user,
+                                            password = password,
+                                            dbms = dbms
+        )
+      }
     }
+    
     attr(connection, "dbms") <- dbms
     return(connection)
   }
