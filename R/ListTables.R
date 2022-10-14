@@ -30,7 +30,7 @@
 #'
 #' @export
 getTableNames <- function(connection, databaseSchema) {
-  if (dbms(connection) %in% c("sqlite", "sqlite extended")) {
+  if (inherits(connection, "DatabaseConnectorDbiConnection")) {
     tables <- dbListTables(connection@dbiConnection, schema = databaseSchema)
     return(toupper(tables))
   }
