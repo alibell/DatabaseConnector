@@ -31,7 +31,12 @@
 #' @export
 getTableNames <- function(connection, databaseSchema) {
   if (inherits(connection, "DatabaseConnectorDbiConnection")) {
-    tables <- dbListTables(connection@dbiConnection, schema = databaseSchema)
+    if (dbms(connection) == 'spark') {
+      tables <- dbListTables(connection@dbiConnection, database = databaseSchema)
+    } else {
+      tables <- dbListTables(connection@dbiConnection, schema = databaseSchema)
+    }
+      
     return(toupper(tables))
   }
 
