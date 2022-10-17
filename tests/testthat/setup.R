@@ -10,6 +10,7 @@ if (Sys.getenv("DONT_DOWNLOAD_JDBC_DRIVERS", "") != "TRUE") {
   downloadJdbcDrivers("redshift")
   downloadJdbcDrivers("spark")
   downloadJdbcDrivers("snowflake")
+  sparklyr::spark_install(version="3.3.0", hadoop_version=3)
 
   withr::defer(
     {
