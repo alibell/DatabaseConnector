@@ -438,13 +438,27 @@ insertTable.DatabaseConnectorDbiConnection <- function(connection,
       }
     }
   }
-  DBI::dbWriteTable(
-    conn = connection@dbiConnection,
-    name = tableName,
-    value = data,
-    overwrite = dropTableIfExists,
-    append = !createTable,
-    temporary = tempTable
-  )
+
+  # Requiring arrow for spark serializer because the default one doesn't support bigints
+  if (dbms(connection) == "spark") {
+    DBI::dbWriteTable(
+      conn = connection@dbiConnection,
+      name = tableName,
+      value = data,
+      overwrite = dropTableIfExists,
+      append = !createTable,
+      temporary = tempTable,
+      serializer = "arrow"
+    )    
+  } else {
+    DBI::dbWriteTable(
+      conn = connection@dbiConnection,
+      name = tableName,
+      value = data,
+      overwrite = dropTableIfExists,
+      append = !createTable,
+      temporary = tempTable
+    )
+  }
   invisible(NULL)
 }

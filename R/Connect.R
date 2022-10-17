@@ -661,14 +661,21 @@ connectUsingJdbcDriver <- function(jdbcDriver,
 }
 
 connectUsingSparklyr <- function(sc) {
-    connection <- new(
-        "DatabaseConnectorDbiConnection",
-        dbiConnection = sc,
-        identifierQuote = "'",
-        stringQuote = "'",
-        dbms = "spark",
-        uuid = generateRandomString()
-    )
+  # Loading arrow library
+  if (!"package:arrow" %in% search()) {
+    # This is needed because only arrow supports bigints retrieval
+    # Sparklyr currently use arrow only if the arrow package is loaded
+    library(arrow)
+  }
+
+  connection <- new(
+      "DatabaseConnectorDbiConnection",
+      dbiConnection = sc,
+      identifierQuote = "'",
+      stringQuote = "'",
+      dbms = "spark",
+      uuid = generateRandomString()
+  )
   registerWithRStudio(connection)
   return(connection)
 }
