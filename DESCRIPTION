@@ -41,6 +41,7 @@ Suggests:
     rmarkdown,
     RSQLite,
     sparklyr,
+    arrow,
     ssh,
     Andromeda,
     dplyr
