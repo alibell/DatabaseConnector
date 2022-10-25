@@ -93,7 +93,7 @@ createConnectionDetails <- function(dbms,
                                     connectionString = NULL,
                                     pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")) {
   checkIfDbmsIsSupported(dbms)
-  if (!is(pathToDriver, "spark_connection")) {
+  if (!inherits(pathToDriver, "DBIConnection")) {
       pathToDriver <- path.expand(pathToDriver)
       checkPathToDriver(pathToDriver, dbms)
   }
@@ -211,7 +211,7 @@ connect <- function(connectionDetails = NULL,
     return(connection)
   }
   checkIfDbmsIsSupported(dbms)
-  if (!is(pathToDriver, "spark_connection")) {
+  if (!inherits(pathToDriver, "DBIConnection")) {
       pathToDriver <- path.expand(pathToDriver)
       checkPathToDriver(pathToDriver, dbms)
   }
@@ -570,9 +570,9 @@ connect <- function(connectionDetails = NULL,
     return(connection)
   }
   if (dbms == "spark") {
-    if (is(pathToDriver, "spark_connection")) {
-        inform("Connecting using Sparklyr")
-        connection <- connectUsingSparklyr(sc=pathToDriver)
+    if (inherits(pathToDriver, "DBIConnection")) {
+        inform("Connecting using Spark driver")
+        connection <- connectUsingSparkDriver(sc=pathToDriver)
     } else {
       inform("Connecting using Spark driver")
       jarPath <- findPathToJar("^SparkJDBC42\\.jar$", pathToDriver)
@@ -660,12 +660,14 @@ connectUsingJdbcDriver <- function(jdbcDriver,
   return(connection)
 }
 
-connectUsingSparklyr <- function(sc) {
+connectUsingSparkDriver <- function(sc) {
   # Loading arrow library
   if (!"package:arrow" %in% search()) {
-    # This is needed because only arrow supports bigints retrieval
-    # Sparklyr currently use arrow only if the arrow package is loaded
-    library(arrow)
+    if (is(sc, "spark_connection")) {
+        # This is needed because only arrow supports bigints retrieval
+        # Sparklyr currently use arrow only if the arrow package is loaded
+        library(arrow)
+    }
   }
 
   connection <- new(
